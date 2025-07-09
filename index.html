@@ -1,47 +1,611 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Slideshow with Click-to-Start Music</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Sheet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #5a6c7d;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .workout-container {
+            display: flex;
+            gap: 30px;
+            overflow-x: auto;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+            width: 100%;
+            max-width: 1200px;
+            scroll-snap-type: x mandatory;
+        }
+
+        .workout-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .workout-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .workout-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .workout-box {
+            min-width: 320px;
+            max-width: 350px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            scroll-snap-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workout-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(64, 150, 255, 0.1), rgba(0, 123, 255, 0.05));
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+
+        .workout-box.completed::before {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.3), rgba(34, 139, 58, 0.2));
+        }
+
+        .workout-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+        }
+
+        .workout-box h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 400;
+        }
+
+        .exercise {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .exercise:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .exercise.completed {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: rgba(40, 167, 69, 0.3);
+        }
+
+        .exercise.completed::after {
+            content: '✓';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #28a745;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .exercise h3 {
+            color: #34495e;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .exercise p {
+            color: #5a6c7d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .timer-section {
+            margin-top: 40px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            color: #2c3e50;
+            font-weight: 300;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .sandclock {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .sandclock svg {
+            width: 100%;
+            height: 100%;
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .sand {
+            fill: #f39c12;
+            animation: sandfall 3s ease-in-out infinite;
+        }
+
+        @keyframes sandfall {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #2c3e50;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn.active {
+            background: rgba(0, 123, 255, 0.3);
+            border-color: rgba(0, 123, 255, 0.5);
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #007bff;
+            transform: scale(1.2);
+        }
+
+        .progress-dot.completed {
+            background: #28a745;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .workout-container {
+                gap: 20px;
+                padding: 15px 0;
+            }
+
+            .workout-box {
+                min-width: 280px;
+                max-width: 300px;
+                padding: 25px 20px;
+            }
+
+            .workout-box h2 {
+                font-size: 1.5rem;
+            }
+
+            .timer-display {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .workout-box {
+                min-width: 260px;
+                max-width: 280px;
+            }
+
+            .timer-section {
+                padding: 20px;
+            }
+
+            .timer-controls {
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-
-  <!-- Click-to-start screen -->
-  <div id="start-screen">
-    <button id="start-button">Click to Start</button>
-  </div>
-
-  <!-- Background music -->
-  <audio id="background-music" loop>
-    <source src="music.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
-
-  <!-- Slideshow -->
-  <div class="slideshow" style="display:none;">
-    <div class="slides">
-      <img src="image1.jpg" alt="Slide 1" />
-      <img src="image2.jpg" alt="Slide 2" />
-      <img src="image3.jpg" alt="Slide 3" />
+    <div class="background">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <linearGradient id="gradient" x1="0.854" y1="0.146" x2="0.146" y2="0.854">
+                    <stop offset="0.000" stop-color="rgb(130, 205, 224)" />
+                    <stop offset="0.167" stop-color="rgb(149, 201, 222)" />
+                    <stop offset="0.333" stop-color="rgb(174, 200, 216)" />
+                    <stop offset="0.500" stop-color="rgb(202, 201, 208)" />
+                    <stop offset="0.667" stop-color="rgb(232, 206, 199)" />
+                    <stop offset="0.833" stop-color="rgb(255, 213, 194)" />
+                    <stop offset="1.000" stop-color="rgb(255, 221, 192)" />
+                </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
+        </svg>
     </div>
-  </div>
 
-  <script>
-    const button = document.getElementById('start-button');
-    const music = document.getElementById('background-music');
-    const startScreen = document.getElementById('start-screen');
-    const slideshow = document.querySelector('.slideshow');
+    <div class="container">
+        <header class="header">
+            <h1>Workout Sheet</h1>
+            <p>Complete your daily fitness routine</p>
+        </header>
 
-    button.addEventListener('click', () => {
-      startScreen.style.display = 'none';
-      slideshow.style.display = 'block';
-      music.volume = 1.0;
-      music.play().catch(error => {
-        console.error("Music play failed:", error);
-      });
-    });
-  </script>
+        <div class="workout-container" id="workoutContainer">
+            <!-- Warm-up Box -->
+            <div class="workout-box" data-section="warmup">
+                <h2>🔥 Warm-up</h2>
+                <div class="exercise" data-exercise="warmup1">
+                    <h3>Jumping Jacks</h3>
+                    <p>2 sets of 30 seconds<br>Get your heart rate up</p>
+                </div>
+                <div class="exercise" data-exercise="warmup2">
+                    <h3>Arm Circles</h3>
+                    <p>10 forward, 10 backward<br>Warm up shoulder joints</p>
+                </div>
+                <div class="exercise" data-exercise="warmup3">
+                    <h3>High Knees</h3>
+                    <p>30 seconds<br>Activate leg muscles</p>
+                </div>
+            </div>
+
+            <!-- Main Workout Box -->
+            <div class="workout-box" data-section="main">
+                <h2>💪 Main Workout</h2>
+                <div class="exercise" data-exercise="main1">
+                    <h3>Push-ups</h3>
+                    <p>3 sets of 12 reps<br>Target chest and arms</p>
+                </div>
+                <div class="exercise" data-exercise="main2">
+                    <h3>Squats</h3>
+                    <p>3 sets of 15 reps<br>Strengthen legs and glutes</p>
+                </div>
+                <div class="exercise" data-exercise="main3">
+                    <h3>Plank</h3>
+                    <p>3 sets of 30 seconds<br>Core strengthening</p>
+                </div>
+                <div class="exercise" data-exercise="main4">
+                    <h3>Lunges</h3>
+                    <p>2 sets of 10 each leg<br>Leg and balance training</p>
+                </div>
+                <div class="exercise" data-exercise="main5">
+                    <h3>Burpees</h3>
+                    <p>2 sets of 8 reps<br>Full body conditioning</p>
+                </div>
+            </div>
+
+            <!-- Stretching Box -->
+            <div class="workout-box" data-section="stretching">
+                <h2>🧘 Stretching</h2>
+                <div class="exercise" data-exercise="stretch1">
+                    <h3>Hamstring Stretch</h3>
+                    <p>Hold for 30 seconds each leg<br>Relax leg muscles</p>
+                </div>
+                <div class="exercise" data-exercise="stretch2">
+                    <h3>Shoulder Stretch</h3>
+                    <p>Hold for 20 seconds each arm<br>Release shoulder tension</p>
+                </div>
+                <div class="exercise" data-exercise="stretch3">
+                    <h3>Cat-Cow Pose</h3>
+                    <p>10 slow movements<br>Spine mobility and relaxation</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <div class="sandclock">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 2h12v6l-6 6 6 6v6H6v-6l6-6-6-6V2z" stroke="#2c3e50" stroke-width="1.5" fill="none"/>
+                    <path class="sand" d="M8 4h8v2l-4 4-4-4V4z"/>
+                    <path class="sand" d="M8 20h8v-2l-4-4-4 4v2z"/>
+                    <circle class="sand" cx="12" cy="12" r="1"/>
+                </svg>
+            </div>
+            <div class="timer-display" id="timerDisplay">05:00</div>
+            <div class="timer-controls">
+                <button class="btn" id="startBtn">Start</button>
+                <button class="btn" id="pauseBtn">Pause</button>
+                <button class="btn" id="resetBtn">Reset</button>
+            </div>
+        </div>
+
+        <div class="progress-indicator">
+            <div class="progress-dot" data-section="warmup"></div>
+            <div class="progress-dot" data-section="main"></div>
+            <div class="progress-dot" data-section="stretching"></div>
+        </div>
+    </div>
+
+    <script>
+        class WorkoutApp {
+            constructor() {
+                this.timer = {
+                    minutes: 5,
+                    seconds: 0,
+                    isRunning: false,
+                    interval: null
+                };
+                
+                this.completedExercises = new Set();
+                this.completedSections = new Set();
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.updateTimerDisplay();
+                this.updateProgressDots();
+            }
+
+            setupEventListeners() {
+                // Exercise click handlers
+                document.querySelectorAll('.exercise').forEach(exercise => {
+                    exercise.addEventListener('click', () => this.toggleExercise(exercise));
+                });
+
+                // Timer controls
+                document.getElementById('startBtn').addEventListener('click', () => this.startTimer());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pauseTimer());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetTimer());
+
+                // Scroll detection for progress dots
+                document.getElementById('workoutContainer').addEventListener('scroll', () => this.updateActiveSection());
+            }
+
+            toggleExercise(exerciseElement) {
+                const exerciseId = exerciseElement.dataset.exercise;
+                const sectionId = exerciseElement.closest('.workout-box').dataset.section;
+
+                if (this.completedExercises.has(exerciseId)) {
+                    this.completedExercises.delete(exerciseId);
+                    exerciseElement.classList.remove('completed');
+                } else {
+                    this.completedExercises.add(exerciseId);
+                    exerciseElement.classList.add('completed');
+                    
+                    // Add completion animation
+                    exerciseElement.style.animation = 'none';
+                    setTimeout(() => {
+                        exerciseElement.style.animation = 'pulse 0.6s ease-in-out';
+                    }, 10);
+                }
+
+                this.checkSectionCompletion(sectionId);
+                this.updateProgressDots();
+            }
+
+            checkSectionCompletion(sectionId) {
+                const sectionBox = document.querySelector(`[data-section="${sectionId}"]`);
+                const exercises = sectionBox.querySelectorAll('.exercise');
+                const completedInSection = Array.from(exercises).filter(ex => 
+                    this.completedExercises.has(ex.dataset.exercise)
+                );
+
+                if (completedInSection.length === exercises.length) {
+                    if (!this.completedSections.has(sectionId)) {
+                        this.completedSections.add(sectionId);
+                        sectionBox.classList.add('completed');
+                        
+                        // Section completion animation
+                        sectionBox.style.animation = 'sectionComplete 1s ease-in-out';
+                        setTimeout(() => {
+                            sectionBox.style.animation = '';
+                        }, 1000);
+                    }
+                } else {
+                    this.completedSections.delete(sectionId);
+                    sectionBox.classList.remove('completed');
+                }
+            }
+
+            updateProgressDots() {
+                document.querySelectorAll('.progress-dot').forEach(dot => {
+                    const sectionId = dot.dataset.section;
+                    dot.classList.remove('completed', 'active');
+                    
+                    if (this.completedSections.has(sectionId)) {
+                        dot.classList.add('completed');
+                    }
+                });
+            }
+
+            updateActiveSection() {
+                const container = document.getElementById('workoutContainer');
+                const scrollLeft = container.scrollLeft;
+                const boxWidth = 350; // Approximate box width including gap
+                const activeIndex = Math.round(scrollLeft / boxWidth);
+                
+                document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                    dot.classList.remove('active');
+                    if (index === activeIndex && !dot.classList.contains('completed')) {
+                        dot.classList.add('active');
+                    }
+                });
+            }
+
+            startTimer() {
+                if (!this.timer.isRunning) {
+                    this.timer.isRunning = true;
+                    document.getElementById('startBtn').classList.add('active');
+                    
+                    this.timer.interval = setInterval(() => {
+                        if (this.timer.seconds === 0) {
+                            if (this.timer.minutes === 0) {
+                                this.timerComplete();
+                                return;
+                            }
+                            this.timer.minutes--;
+                            this.timer.seconds = 59;
+                        } else {
+                            this.timer.seconds--;
+                        }
+                        this.updateTimerDisplay();
+                    }, 1000);
+                }
+            }
+
+            pauseTimer() {
+                this.timer.isRunning = false;
+                clearInterval(this.timer.interval);
+                document.getElementById('startBtn').classList.remove('active');
+            }
+
+            resetTimer() {
+                this.pauseTimer();
+                this.timer.minutes = 5;
+                this.timer.seconds = 0;
+                this.updateTimerDisplay();
+            }
+
+            timerComplete() {
+                this.pauseTimer();
+                alert('Timer completed! Great job! 🎉');
+            }
+
+            updateTimerDisplay() {
+                const display = document.getElementById('timerDisplay');
+                const minutes = this.timer.minutes.toString().padStart(2, '0');
+                const seconds = this.timer.seconds.toString().padStart(2, '0');
+                display.textContent = `${minutes}:${seconds}`;
+            }
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            @keyframes sectionComplete {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); box-shadow: 0 0 30px rgba(40, 167, 69, 0.5); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            new WorkoutApp();
+        });
+    </script>
 </body>
 </html>
