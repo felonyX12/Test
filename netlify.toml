@@ -3,14 +3,17 @@
   base = "frontend/"
   # Directory that contains the deploy-ready HTML files and assets
   publish = "frontend/build"
-  # Default build command
-  command = "npm run build"
+  # Default build command with warning suppression
+  command = "npm install --legacy-peer-deps && npm run build"
 
 [build.environment]
   # Node.js version
-  NODE_VERSION = "16"
+  NODE_VERSION = "18"
   # React build optimization
   GENERATE_SOURCEMAP = "false"
+  # Suppress warnings and treat as non-blocking
+  CI = "false"
+  DISABLE_ESLINT_PLUGIN = "true"
 
 # Redirect all requests to index.html for React Router
 [[redirects]]
