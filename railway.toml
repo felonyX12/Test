@@ -1,0 +1,12 @@
+[build]
+# Use the backend directory
+workingDir = "backend"
+
+[deploy]
+# Start command for the Flask app
+startCommand = "python app.py"
+
+[env]
+# Environment variables
+FLASK_ENV = "production"
+PORT = "5000"

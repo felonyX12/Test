@@ -12,7 +12,19 @@ from pathlib import Path
 import time
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS for production
+if os.environ.get('FLASK_ENV') == 'production':
+    # Allow Netlify domains and custom domains
+    CORS(app, origins=[
+        "https://*.netlify.app",
+        "https://*.netlify.com", 
+        "https://localhost:3000",
+        "http://localhost:3000"
+    ])
+else:
+    # Allow all origins in development
+    CORS(app)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -229,4 +241,5 @@ def health_check():
     return jsonify({'status': 'healthy', 'spotify_available': spotify is not None})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)

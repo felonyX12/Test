@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '/api')
+  ? (process.env.REACT_APP_API_URL || 'https://music-app-backend.up.railway.app')
   : 'http://localhost:5000';
 
 function App() {
