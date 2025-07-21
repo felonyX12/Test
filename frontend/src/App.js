@@ -2,7 +2,9 @@ import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '/api')
+  : 'http://localhost:5000';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
